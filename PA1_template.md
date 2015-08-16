@@ -11,34 +11,44 @@ output: html_document
 ## Loading and preprocessing the data
 We load the data. For now we do not apply any preprocessing; later we will
 change the class of the second column by using 'as.POSIXct' function so we can cwork with dates.
-```{r}
-myData <- read.csv(file = 'activity.csv',stringsAsFactors = TRUE)
 
+```r
+myData <- read.csv(file = 'activity.csv',stringsAsFactors = TRUE)
 ```
 ##What is mean total number of steps taken per day?
 We calculate the total number of steps taken per day.
-```{r}
+
+```r
 temp <-myData[,c("steps", "date")]
 totalNumTimeStepsPerDay <- as.vector(by(temp[,"steps"], temp[,"date"],
                                          FUN=sum,na.rm=TRUE))
 ```
 We make historgram a of the total number of steps taken each day. For this we will
 use 'lattice' package.
-```{r,echo=TRUE}
+
+```r
 library(lattice)
 histogram(totalNumTimeStepsPerDay, xlab = "total number of steps per day",
           col = 'grey')
 ```
 
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png) 
+
 Now we calculate and report the mean and median of the total number of steps taken per day.
 
-```{r}
+
+```r
 c(mean(totalNumTimeStepsPerDay), median(totalNumTimeStepsPerDay))
+```
+
+```
+## [1]  9354.23 10395.00
 ```
 
 ##What is the average daily activity pattern?
 First we make a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis).
-```{r}
+
+```r
 numDays<-length(unique(as.character(myData[,"date"])))
 numIntervals <- length(unique(myData[,"interval"]))
 stepsInterval <- matrix(0,nrow=numIntervals,ncol=numDays)
@@ -50,23 +60,36 @@ xyplot(averageNumTimeStepsPerDay~1:numIntervals, type='l', xlab="interval",
        ylab="average number of steps ")
 ```
 
+![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-1.png) 
+
 We find which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps.
 
-```{r}
+
+```r
 which.max(averageNumTimeStepsPerDay)
+```
+
+```
+## [1] 104
 ```
 ##Imputing missing values
 First we calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs).
 
-```{r}
+
+```r
 sum(is.na(myData[,1]))
+```
+
+```
+## [1] 2304
 ```
 For a strategy for filling in the missingvalue of a 5-minute interval in the dataset we used the mean for that interval, taken across all days. For this part of the exercise
 it is useful to use POSIXct class, so we can efficiently work with 'date' column.
 Using the described strategy for missing data we create a new dataset that is equal to the original dataset but with the missing data filled in with the mean for each interval.
 
 
-```{r}
+
+```r
 myData <- read.csv(file = 'activity.csv', as.is = TRUE)
 myData[,"date"] <-as.POSIXct(myData[,"date"])
 myData1 <- myData
@@ -79,7 +102,8 @@ for(i in 1:numDays){
 Now we make a histogram of the total number of steps taken each day. For comparison
 we show both histograms on one plot.
 
-```{r}
+
+```r
 temp <-myData1[,c("steps", "date")]
 totalNumTimeStepsPerDay1 <- as.vector(by(temp[,"steps"], temp[,"date"],
                                          FUN=sum,na.rm=TRUE))
@@ -90,13 +114,25 @@ hist(totalNumTimeStepsPerDay1, xlab = "total number of steps per day",
      main="With imputed missing values",, col='grey')
 ```
 
+![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9-1.png) 
+
 We calculate new values of the mean and median:
-```{r}
+
+```r
 c(mean(totalNumTimeStepsPerDay1), median(totalNumTimeStepsPerDay1))
 ```
+
+```
+## [1] 10766.19 10766.19
+```
 and compare to the old values
-```{r}
+
+```r
 c(mean(totalNumTimeStepsPerDay), median(totalNumTimeStepsPerDay))
+```
+
+```
+## [1]  9354.23 10395.00
 ```
 
 We see that replacing the NA values with the mean for each 5-minute interval changes the left tail of the distribution. The new mean and median and larger.
@@ -105,7 +141,8 @@ We see that replacing the NA values with the mean for each 5-minute interval cha
 ##Are there differences in activity patterns between weekdays and weekends?
 We first create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day
 
-```{r}
+
+```r
 days<-myData[,"date"]
 weekendIndicator<- (weekdays(days)=="Sunday")|(weekdays(days)=="Saturday")
 temp<-rep(0,length(weekendIndicator))
@@ -114,7 +151,8 @@ temp[!weekendIndicator]='weekday'
 weekendIndicator<-as.factor(temp)
 ```
 Now we make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
-```{r}
+
+```r
 myData2<-cbind(myData1,weekendIndicator)
 X <- split(myData2, weekendIndicator)
 
@@ -143,3 +181,5 @@ xyz[,"z"]<-factor(c(rep('weekend',n),rep('weekday',n)),level=c('weekday','weeken
 xyplot(x~y | z, type='l', layout = c(1,2),
        xlab ='Interval', ylab='Number of steps', data=xyz)
 ```
+
+![plot of chunk unnamed-chunk-13](figure/unnamed-chunk-13-1.png) 
